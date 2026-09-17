@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>眠月 · 项目作品集 | AI Agent 工程</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%231b1c2b'/><circle cx='30' cy='30' r='17' fill='%23f2c94c'/><circle cx='40' cy='24' r='15' fill='%231b1c2b'/><circle cx='47' cy='44' r='2.2' fill='%23f2c94c'/></svg>">
+<style>
+  /* ============ Design Tokens ============ */
+  :root {
+    /* Windows 11 / Fluent 风格色板（避免纯黑纯白） */
+    --bg-0: #eef1f5;
+    --bg-1: #f6f8fa;
+    --surface: rgba(252, 252, 252, 0.86);
+    --surface-solid: #fcfcfc;
+    --surface-hover: #f2f5f9;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.16);
+    --text-1: #1c1c1c;
+    --text-2: #5c5c5c;
+    --text-3: #6f6f6f;
+    --accent: #0067c0;
+    --accent-hover: #0a5ba6;
+    --accent-soft: rgba(0, 103, 192, 0.10);
+    --accent-ink: #ffffff;
+    --success: #0f6c41;
+    --success-soft: rgba(15, 108, 65, 0.10);
+    --warn: #8a4d0f;
+    --warn-soft: rgba(138, 77, 15, 0.12);
+    --focus-ring: rgba(0, 103, 192, 0.65);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.08);
+    --radius: 8px;
+    /* 4pt 间距体系（1pt = 1.333px，取整为 4px 网格） */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-10: 40px;
+    --font-ui: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "微软雅黑", system-ui, sans-serif;
+    --font-mono: "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-0: #191919;
+      --bg-1: #232323;
+      --surface: rgba(38, 38, 38, 0.88);
+      --surface-solid: #262626;
+      --surface-hover: #2f2f2f;
+      --border: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text-1: #e9e9e9;
+      --text-2: #adadad;
+      --text-3: #949494;
+      --accent: #60c8ff;
+      --accent-hover: #9bd9ff;
+      --accent-soft: rgba(96, 200, 255, 0.14);
+      --accent-ink: #121212;
+      --success: #8fd8ae;
+      --success-soft: rgba(143, 216, 174, 0.14);
+      --warn: #ffd18a;
+      --warn-soft: rgba(255, 209, 138, 0.14);
+      --focus-ring: rgba(96, 200, 255, 0.7);
+      --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  /* ============ Base ============ */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  body {
+    margin: 0;
+    font-family: var(--font-ui);
+    color: var(--text-1);
+    background-color: var(--bg-1);
+    background-image:
+      radial-gradient(1200px 520px at 8% -10%, var(--accent-soft), transparent 62%),
+      radial-gradient(900px 420px at 96% 6%, rgba(140, 170, 200, 0.14), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1) 42%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* 轻微噪声，增强 Mica 质感（data URI 内联，无外部依赖） */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: var(--sp-8) var(--sp-6) var(--sp-10);
+  }
+
+  /* ============ Header ============ */
+  .header { padding: var(--sp-6) 0 var(--sp-5); }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: var(--sp-2);
+  }
+  .title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    margin: var(--sp-2) 0 0;
+    max-width: 720px;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-4);
+    margin-top: var(--sp-3);
+    font-size: 13.5px;
+    font-weight: 550;
+  }
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-top: var(--sp-5);
+  }
+  .stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+  }
+  .stat b {
+    font-size: 22px;
+    font-weight: 650;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span { font-size: 13px; color: var(--text-2); }
+
+  /* ============ Filter chips ============ */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin: var(--sp-2) 0 var(--sp-5);
+  }
+  .chip {
+    appearance: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 550;
+    padding: var(--sp-2) var(--sp-4);
+    color: var(--text-1);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 120ms ease, opacity 120ms ease, background-color 120ms ease;
+  }
+  .chip:hover { background: var(--surface-hover); }
+  .chip:active { transform: scale(0.97); }
+  .chip:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  .chip[aria-pressed="true"] {
+    color: var(--accent-ink);
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+  .chip-count { opacity: 0.75; font-weight: 450; }
+
+  /* ============ Card Grid ============ */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--sp-4);
+  }
+  /* 卡片 = 3D 容器；外观移到 .face 上，正反两面各自可见 */
+  .card {
+    position: relative;
+    perspective: 1600px;
+    opacity: 1;
+  }
+  .card.hidden {
+    display: none;
+    opacity: 0;
+  }
+  .card .flip {
+    display: grid;              /* 两个面重叠在同一格：自动等高、foot 仍贴底 */
+    transform-style: preserve-3d;
+    transition: transform 560ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .card.is-flipped .flip { transform: rotateY(180deg); }
+  .card .face {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--sp-5);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+  .card .face.back {
+    transform: rotateY(180deg);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .card:hover .face { box-shadow: var(--shadow-2); border-color: var(--border-strong); }
+  .card:hover .face.front { transform: translateY(-2px); }
+  .card:hover .face.back { transform: translateY(-2px) rotateY(180deg); }
+  .card:focus-within .face { border-color: var(--accent); }
+  .card:focus-visible { outline: none; }
+  .card:focus-visible .face { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+  .card .face.back h3 {
+    margin: 0 0 var(--sp-2);
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  .card .face.back .points { margin-bottom: var(--sp-3); }
+  .card .face.back .demo-box {
+    margin: 0 0 var(--sp-3);
+    padding: var(--sp-3);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: var(--accent-soft);
+  }
+  .demo-title {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--accent);
+    margin-bottom: var(--sp-2);
+  }
+  .demo-steps { margin: 0; padding-left: 18px; font-size: 12.5px; }
+  .demo-steps li { margin: 3px 0; }
+  .demo-note {
+    margin-top: var(--sp-2);
+    font-size: 11.5px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+  .flip-hint {
+    font-size: 11.5px;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .flip-hint.run { color: var(--accent); font-weight: 600; }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-2);
+  }
+  .badges { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge-accent  { background: var(--accent-soft); color: var(--accent); }
+  .badge-success { background: var(--success-soft); color: var(--success); }
+  .badge-warn    { background: var(--warn-soft); color: var(--warn); }
+  .badge-neutral { background: transparent; color: var(--text-2); border: 1px solid var(--border-strong); }
+  .talk-tag {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 9px;
+    border-radius: 6px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid transparent;
+  }
+  .talk-tag.brief { color: var(--text-2); background: transparent; border-color: var(--border-strong); }
+  .talk-tag.android { color: var(--success); background: var(--success-soft); }
+  .talk-tag.extra { color: var(--warn); background: var(--warn-soft); }
+  .card h2 {
+    margin: 0 0 var(--sp-1);
+    font-size: 19px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  .desc {
+    margin: 0 0 var(--sp-4);
+    font-size: 13.5px;
+    color: var(--text-2);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+    margin-bottom: var(--sp-4);
+  }
+  .tag {
+    font-size: 11.5px;
+    font-weight: 550;
+    color: var(--text-2);
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-family: var(--font-mono);
+  }
+  .points {
+    margin: 0 0 var(--sp-4);
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+    padding-top: var(--sp-3);
+  }
+  .points li {
+    position: relative;
+    padding-left: var(--sp-4);
+    font-size: 13px;
+    color: var(--text-1);
+    margin-top: var(--sp-2);
+  }
+  .points li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--accent);
+    opacity: 0.85;
+  }
+  .points-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.02em;
+  }
+  .card-foot {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    border-top: 1px solid var(--border);
+    padding-top: var(--sp-3);
+  }
+  .src-path {
+    font-size: 11px;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .link-src {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .link-src:hover { background: var(--accent-soft); text-decoration: none; }
+  .link-src:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-2);
+    padding: var(--sp-10) 0;
+    display: none;
+  }
+
+  .footer {
+    margin-top: var(--sp-8);
+    font-size: 12px;
+    color: var(--text-3);
+    border-top: 1px solid var(--border);
+    padding-top: var(--sp-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-4);
+  }
+
+  /* ============ Motion ============ */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card {
+      animation: riseIn 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .card:nth-child(2) { animation-delay: 40ms; }
+    .card:nth-child(3) { animation-delay: 80ms; }
+    .card:nth-child(4) { animation-delay: 120ms; }
+    .card:nth-child(5) { animation-delay: 160ms; }
+    .card:nth-child(6) { animation-delay: 200ms; }
+    .card:nth-child(7) { animation-delay: 240ms; }
+  }
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* 在线版：不展示本地源码路径 */
+  .src-path { display: none; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============ Header ============ -->
+  <header class="header">
+    <div class="eyebrow">Portfolio · 眠月</div>
+    <h1 class="title">项目作品集</h1>
+    <p class="subtitle">AI Agent 工程 · 全栈开发。以下均为真实完成的完整闭环实践：每张卡片为项目概览，点击卡片可翻转查看技术细讲。</p>
+    <div class="contact" aria-label="联系方式">
+      <a href="mailto:birenwenmou@qq.com">birenwenmou@qq.com</a>
+      <a href="https://github.com/joker1point" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://joker1point.github.io/techlog/" target="_blank" rel="noopener">技术博客</a>
+    </div>
+    <div class="stats" aria-label="统计信息">
+      <div class="stat"><b>12</b><span>项目与实践</span></div>
+      <div class="stat"><b>6</b><span>重点项目</span></div>
+      <div class="stat"><b>2</b><span>开源 PR 已合并</span></div>
+      <div class="stat"><b>1</b><span>商业赛获奖</span></div>
+    </div>
+  </header>
+
+  <!-- ============ Filter ============ -->
+  <nav class="chips" role="group" aria-label="项目类型筛选">
+    <button type="button" class="chip" data-filter="all" aria-pressed="true">全部 <span class="chip-count" data-count="all"></span></button>
+    <button type="button" class="chip" data-filter="focus" aria-pressed="false">重点项目 <span class="chip-count" data-count="focus"></span></button>
+    <button type="button" class="chip" data-filter="android" aria-pressed="false">Android <span class="chip-count" data-count="android"></span></button>
+    <button type="button" class="chip" data-filter="extra" aria-pressed="false">小工具 <span class="chip-count" data-count="extra"></span></button>
+  </nav>
+
+  <!-- ============ Cards ============ -->
+  <main class="grid" id="grid">
+
+    <!-- 1. CharacterSeed -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-accent">入围决赛 · 霆万商业AI挑战赛优秀奖</span>
+          <span class="badge badge-success">原创</span>
+        </div>
+        <span class="talk-tag">重点项目</span>
+      </div>
+      <h2>CharacterSeed · AI 数字生命</h2>
+      <p class="desc">由人格、记忆、世界驱动的 AI NPC 平台：角色可成长、可主动发起对话，含 TTS 音色绑定、角色相册与故事视频等多媒体能力。</p>
+      <div class="tags">
+        <span class="tag">FastAPI</span><span class="tag">React18 + Vite + TS</span><span class="tag">SQLAlchemy</span><span class="tag">SQLite</span><span class="tag">SSE</span><span class="tag">Edge-TTS</span><span class="tag">ffmpeg</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>Director + Actor 双 LLM 管线：注意力聚焦与行为生成分离，原始 JSON 可展开调试，可解释可迭代。</li>
+        <li>Jiwen 积温引擎（Python 移植自开源 Node.js 库）：五轴连续状态模型 + 数学漂移 + 阈值触发，驱动角色在用户离线时主动发起对话。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\01_luyan">projects\01_luyan</span>
+        <a class="link-src" href="https://github.com/joker1point/CharacterSeed2.0" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+    <!-- 2. MoneyPrinterTurbo PR -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-warn">开源贡献 · PR#1291 / #1296 已合并</span>
+          <span class="badge badge-neutral">非原创 · 上游 harry0703/MoneyPrinterTurbo 12万+ star</span>
+        </div>
+        <span class="talk-tag">重点项目</span>
+      </div>
+      <h2>MoneyPrinterTurbo 双 PR 贡献</h2>
+      <p class="desc">为 12万+ star 开源 AI 短视频生成器新增 OpenAI 兼容文生图素材源，打通本地 ComfyUI/SD 私有化链路，并闭环修复付费 API 失败边界。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">FastAPI</span><span class="tag">OpenAI 兼容协议</span><span class="tag">Pytest</span><span class="tag">+1441/-32</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>866 个全量测试通过 + 25 个素材源单测；PR 从 Issue 评论到合并约 8 小时，被维护者评价"方向好、测试充分"。</li>
+        <li>付费 API 重试语义建模：按"能否确认服务端未创建任务"划分失败类型（ConnectTimeout 可重试 / 读超时不重试 / 429 退避），本地故障必须终止而非继续扣费。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\02_MoneyPrinterTurbo-PR">projects\02_MoneyPrinterTurbo-PR</span>
+        <a class="link-src" href="https://github.com/harry0703/MoneyPrinterTurbo/pull/1291" target="_blank" rel="noopener">PR #1291 ↗</a>
+        <a class="link-src" href="https://github.com/harry0703/MoneyPrinterTurbo/pull/1296" target="_blank" rel="noopener">PR #1296 ↗</a>
+      </div>
+    </article>
+
+    <!-- 3. agent-skill-framework -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-neutral">GitHub joker1point</span>
+        </div>
+        <span class="talk-tag">重点项目</span>
+      </div>
+      <h2>agent-skill-framework</h2>
+      <p class="desc">AI Agent 技能管理框架：支持技能创建 / 加载 / 评估 / 迭代，以真实 LLM 基准测试验证技能效果，告别"看起来能用"。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">OpenAI 兼容 API</span><span class="tag">JSON 驱动测试</span><span class="tag">HTML 报告</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>评估闭环：JSON 测试用例 → with/without 真实 LLM 基准对比 → 交互式 HTML 报告 → 自动优化技能描述再迭代。</li>
+        <li>技能按需加载 + 渐进式上下文管理：把"技能是否有用"从主观判断变成可量化、可回归的工程指标。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\03_agent-skill-framework">projects\03_agent-skill-framework</span>
+        <a class="link-src" href="https://github.com/joker1point/agent-skill-framework" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+    <!-- 4. VDB-News -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创（AI 辅助）</span>
+          <span class="badge badge-accent">完整闭环 · 16 路信源 → 每日情报报告</span>
+          <span class="badge badge-neutral">未开源 · 可现场演示</span>
+        </div>
+        <span class="talk-tag">重点项目</span>
+      </div>
+      <h2>VDB-News · AI 情报管道与可进化报告平台</h2>
+      <p class="desc">不止 RAG 问答：16 路信源自动采集 → 8 步分析管道（采集 / 去重 / 聚类 / 分析 / 审核 / 组装 / 分发）→ 每日主题日报。报告带「进化对比」（较上一份新增 / 延续）与信号分级，用户打分反哺后续排序；另配 React19 + TS 管理台做主题、报告、知识库与模型治理。</p>
+      <div class="tags">
+        <span class="tag">FastAPI</span><span class="tag">RAG / 向量库</span><span class="tag">报告引擎</span><span class="tag">SSE 流式</span><span class="tag">React19 + TS</span><span class="tag">成本治理</span><span class="tag">Docker / HTTPS</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li><b>产品判断</b>：把定位从「新闻问答」改成「数据管道 + 可进化报告」——最终产出是一份报告而非一次对话，并用进化对比（新增 / 延续）让"每天自动更新"这件事被用户看见。</li>
+        <li><b>个性化闭环</b>：显式打分（👍 加权 / 👎 直接剔除）+ 隐式兴趣画像双路反哺检索与排序，报告越用越准，而不是一次性生成后就静止。</li>
+        <li><b>工程与成本</b>：修复充值幂等失效（幂等键与余额未同事务，资金正确性缺陷）、scrypt 密码 + 登录限流 + 上传鉴权等安全加固；embedding 成本压到 ≈ ¥0.0017/篇，单份报告 ≈ ¥0.014。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\05_vectordb-news">projects\05_vectordb-news</span>
+      </div>
+    </article>
+
+    <!-- 6. Attention Gallery -->
+    <article class="card" data-talk="android" data-talk-label="Android 岗补充">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · Android</span>
+        </div>
+        <span class="talk-tag android">Android</span>
+      </div>
+      <h2>Attention Gallery · 智能相册</h2>
+      <p class="desc">本地优先的智能相册 Android 应用：图像相似度自动聚类分组、堆叠卡片浏览，照片不上传云端。</p>
+      <div class="tags">
+        <span class="tag">Jetpack Compose</span><span class="tag">Kotlin</span><span class="tag">Room</span><span class="tag">Coil</span><span class="tag">ML Kit</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>本地 ML Kit 相似度聚类：隐私友好，规避"相册上传云端"的敏感问题；Room + 协程批量加载设备照片流。</li>
+        <li>现代 Android 全链路：权限申请 → 扫描聚类 → 分组浏览，可独立构建 APK 演示。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\06_photo-album-mvp">projects\06_photo-album-mvp</span>
+      </div>
+    </article>
+
+    <!-- 7. android-wechat-scroller -->
+    <article class="card" data-talk="android" data-talk-label="Android 岗补充">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · Android</span>
+        </div>
+        <span class="talk-tag android">Android</span>
+      </div>
+      <h2>android-wechat-scroller</h2>
+      <p class="desc">微信文章悬浮滚动条阅读器：用无障碍服务为长文章叠加可拖动的悬浮滚动条，快速定位阅读位置。</p>
+      <div class="tags">
+        <span class="tag">Android Java</span><span class="tag">AccessibilityService</span><span class="tag">悬浮窗</span><span class="tag">WebView</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>无障碍服务 + 悬浮窗（Android 10+ TYPE_APPLICATION_OVERLAY / 13+ 广播导出）的系统级兼容处理。</li>
+        <li>带自更新通道：远端 update.json 比对 versionCode → 下载 APK → FileProvider 安装，通知栏进度。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\07_android-wechat-scroller">projects\07_android-wechat-scroller</span>
+      </div>
+    </article>
+
+    <!-- 10. html-file-manager -->
+    <article class="card" data-talk="extra" data-talk-label="补充展示">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 桌面工具</span>
+          <span class="badge badge-neutral">PyInstaller 打包 exe</span>
+        </div>
+        <span class="talk-tag extra">小工具</span>
+      </div>
+      <h2>html-file-manager · 本地素材文件管理器</h2>
+      <p class="desc">管理本地 HTML 素材的桌面应用：按文件名 / 内容 / 标签搜索，分类树 + 标签体系 + 内置 HTTP 服务，打包为独立 exe。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">标准库 http.server</span><span class="tag">原生 JS 前端</span><span class="tag">PyInstaller</span><span class="tag">桌面 exe</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>无框架实现：用 Python 标准库 http.server + 线程写本地服务，配原生前端完成交互，不引第三方框架。</li>
+        <li>PyInstaller 路径兼容：get_resource_path / get_data_dir 区分 exe 与源码运行环境，内置数据目录管理。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\10_html-file-manager">projects\10_html-file-manager</span>
+      </div>
+    </article>
+
+    <!-- 11. programmer-portfolio-website -->
+    <article class="card" data-talk="extra" data-talk-label="补充展示">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创</span>
+          <span class="badge badge-neutral">体量小 · 补充展示</span>
+        </div>
+        <span class="talk-tag extra">小工具</span>
+      </div>
+      <h2>programmer-portfolio-website · 接单作品集网站</h2>
+      <p class="desc">个人接单与作品展示站：多页面原生前端 + Express 后端处理表单提交与数据管理，可作个人主页直接演示。</p>
+      <div class="tags">
+        <span class="tag">Node.js</span><span class="tag">Express</span><span class="tag">原生 HTML/CSS/JS</span><span class="tag">表单落盘</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>轻量全栈闭环：无框架组织多页面站 + Express 表单 API + admin 后台管理页。</li>
+        <li>自我定位诚实：体量较小（约 3MB），面试主线建议讲 CharacterSeed / VDB-News / viral-content-analysis，本站作补充。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\11_programmer-portfolio-website">projects\11_programmer-portfolio-website</span>
+      </div>
+    </article>
+
+    <!-- 12. viral-content-analysis -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 后端 + 前端全栈</span>
+          <span class="badge badge-neutral">数字人链路已真实出片</span>
+        </div>
+        <span class="talk-tag">重点项目</span>
+      </div>
+      <h2>viral-content-analysis · AI 爆款内容分析与脚本生成</h2>
+      <p class="desc">输入关键词或链接，自动完成采集 → 爆款结构分析 → IP 风格改写 → 0-100 评分排序 → 选题 → 可拍摄脚本 → 数字人成片，附零构建网页界面与异步任务系统。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">FastAPI · 29 端点</span><span class="tag">Pydantic</span><span class="tag">原生 ES Module SPA</span><span class="tag">OpenAI 兼容 LLM</span><span class="tag">异步任务队列</span><span class="tag">ffmpeg</span><span class="tag">MCP / CLI</span><span class="tag">pytest · 257</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>提示词根因诊断：90 条内容分析后 9 个字段只有 1 个有值 → 定位到提示词未描述输出契约 → 修复后 Top1 从 57 提升到 71.3 分（S 级）、聚类从 85 类碎片化收敛到 16 类、成功率 100%。</li>
+        <li>防 LLM 编造事实：脚本会把"老洋楼"写成"百年老洋楼" → 建立时间表述规则校验（1972年 = 九七二年 = 上世纪九十年代，统一归一化后比对），10 个用例零误报零漏报。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\12_viral-content-analysis">projects\12_viral-content-analysis</span>
+      </div>
+    </article>
+
+    <!-- 13. TechLog 技术博客 -->
+    <article class="card" data-talk="focus" data-talk-label="重点项目">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已上线</span>
+          <span class="badge badge-neutral">AI Agent 工程实践 · 持续更新</span>
+        </div>
+        <span class="talk-tag">重点项目</span>
+      </div>
+      <h2>TechLog · AI Agent 工程博客</h2>
+      <p class="desc">自建技术博客（Next.js 15 + React 19 + Tailwind 4 + Contentlayer）：沉淀 Agent 工程化的一手踩坑复盘——架构演进、容错设计、上下文工程与成本治理。</p>
+      <div class="tags">
+        <span class="tag">Next.js 15</span><span class="tag">React 19</span><span class="tag">Tailwind 4</span><span class="tag">Contentlayer</span><span class="tag">MDX</span><span class="tag">静态导出</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>不是搬运转载：深度复盘均来自真实项目踩坑（Skill 压平架构后 Restatement 回归、付费 API 重试语义建模、22 篇文档蒸馏为可进化技能）。</li>
+        <li>写作流工程化：Obsidian 同步 → MDX → Contentlayer 静态生成 → 一键构建部署，从写作到上线全链路自动化。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\13_techlog">joker1point/techlog</span>
+        <a class="link-src" href="https://github.com/joker1point/techlog" target="_blank" rel="noopener">源码 ↗</a>
+        <a class="link-src" href="https://joker1point.github.io/techlog/" target="_blank" rel="noopener">访问博客 ↗</a>
+        <a class="link-src" href="https://techlog-18328.app.workbuddy.host" target="_blank" rel="noopener">备用入口 ↗</a>
+      </div>
+    </article>
+
+    <!-- 14. portwatch -->
+    <article class="card" data-talk="extra" data-talk-label="补充展示">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-neutral">Windows 系统工具 · 全栈</span>
+        </div>
+        <span class="talk-tag extra">小工具</span>
+      </div>
+      <h2>portwatch · 本机端口占用归因与历史留档</h2>
+      <p class="desc">把「端口被哪个进程占了」从 netstat 的一行 IP:PORT，变成可追溯的归因链路（端口 → PID → 进程名 → exe → 启动命令行 → 工作目录 → 启动时间），并把每次占用的出现 / 消失留档成可回溯的历史。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">psutil</span><span class="tag">FastAPI + SSE</span><span class="tag">SQLite WAL</span><span class="tag">React 19 + Vite + TS</span><span class="tag">asyncio</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>性能陷阱定位：Windows 上 <code>psutil.Process.ppid()</code> 每次调用都会重建一次全量进程快照（约 45ms），逐进程取父进程让整轮采集从毫秒级恶化到 <b>4476ms</b>、吃穿 2 秒轮询周期 → 改为一次快照 + 查表后降到 <b>73ms</b>（保留兜底分支，因用到私有 API）。</li>
+        <li>分层纪律 + 故障隔离：事件表只由采集层的真实观测追加，心跳刷新 / 对账闭合只允许改区间表；历史层投递同步非阻塞、sqlite3 全部走 <code>asyncio.to_thread</code>，任何 DB 异常都不影响实时 SSE 主链路。</li>
+        <li>心跳缺陷的定位与修复：稳定占用不产生 delta → <code>last_seen_at</code> 永远等于 <code>first_seen_at</code> → 进程被强杀后对账闭合时取到重启时刻，占用时长被虚增（停机多久就虚增多久）；修复后长驻占用 3.4 小时内 <code>last_seen_at</code> 持续推进。</li>
+        <li>诚实的时间语义：2 秒采样只能把变化定位在 <code>(上一轮, 本轮]</code> 内，字段名刻意用 <code>first_seen_at</code> / <code>occurred_at</code>，并在文档中显式声明采样不确定性。</li>
+        <li>测试与 CI：16 个 pytest 用例钉住三层契约（快照结构与自端口归因 / diff 语义与保守保护判定 / 历史层三条设计纪律），GitHub Actions 四矩阵（ubuntu + windows × py3.11 / 3.13）回归。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\14_portwatch">frontend-works\portwatch</span>
+        <a class="link-src" href="https://github.com/joker1point/portwatch" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+    <!-- 15. flowwatch -->
+    <article class="card" data-talk="extra" data-talk-label="补充展示">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-neutral">Windows 系统工具 · 全栈</span>
+        </div>
+        <span class="talk-tag extra">小工具</span>
+      </div>
+      <h2>flowwatch · 本机流量实时监控与进程归因</h2>
+      <p class="desc">回答任务管理器回答不了的问题：哪个进程在跟谁通信、用了多少带宽、从什么时候开始的 —— 并把「说不清是谁的流量」如实分账（本机归因 / 属主受限 / 未归因 / 别人的流量 / 非 TCP-UDP），不混进总数里假装准确。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">ctypes + Npcap</span><span class="tag">FastAPI + SSE</span><span class="tag">SQLite WAL</span><span class="tag">React 19 + Vite + TS</span><span class="tag">DNS / TLS SNI</span><span class="tag">ETW</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li>未归因率 <b>36.8% → 29.8%</b>（最小窗口 1.1%）：先给查表函数插桩拿未命中<b>原因分布</b>，再用 100ms 高频轮询做判别实验，把缺口拆成「短命 socket 漏拍 20.5% / 表里从未出现 79.5%」，再针对性修（<code>promisc=0</code> + 本机地址白名单 + 端点/四元组两层记忆 + 自适应刷新）。</li>
+        <li>两条路先被实测否掉才转向 ETW：表解析优化只有 <b>1.6×</b>（10Hz 要吃单核 36%）不值得；端口级推断在 CDN 场景会混。ETW 事件 ID 查官方清单才发现记忆里的 <code>10/11</code> 是错的（实际 <code>12/28</code>）。</li>
+        <li>系统层三条纪律：结构体不手算偏移（ctypes 按文档顺序定义 + 导入断言尺寸 48/120/80/112）、<b>fail-closed</b>（本机地址校验连续失败就停用，绝不误归因）、拿不到权限就降级（非提权 <code>state=denied</code>，主链路照常）。</li>
+        <li>历史层：连续量按<b>时间桶聚合</b>（每分钟每进程一行 + 域名桶 + 事件三关：出现要够格 / 尖峰要有基线 / 冷启动静默）；一次自锁事故换来「写库独立线程 + 有界队列、读接口走线程池」的故障隔离。</li>
+        <li>隐私与口径都写进设计：<code>promisc=0</code>、不落包体、只统计元数据、只监听 <code>127.0.0.1</code>；域名只读明文元数据（DNS 应答 + TLS SNI）；未归因率同时给本窗口与近 60 窗滚动两个口径并附样本量。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\15_flowwatch">frontend-works\flowwatch</span>
+        <a class="link-src" href="https://github.com/joker1point/flowwatch" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+    <div class="empty" id="empty">当前筛选条件下没有项目。</div>
+  </main>
+
+  <footer class="footer">
+    <span>眠月 · AI Agent 工程 / 全栈开发 · 更新于 2026-09-15</span>
+    <span>所有项目均为真实实践，GitHub 链接可直接查看源码。</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+  var chips = Array.prototype.slice.call(document.querySelectorAll(".chip"));
+  var empty = document.getElementById("empty");
+  var counts = { all: cards.length, focus: 0, brief: 0, android: 0, extra: 0 };
+
+  cards.forEach(function (card) {
+    var k = card.getAttribute("data-talk");
+    if (counts[k] !== undefined) counts[k] += 1;
+  });
+
+  /* ============ 翻转：卡片背面 = 技术细讲 ============ */
+  var BACK = {
+    "01": {
+      title: "CharacterSeed · 技术细讲",
+      points: [
+        "双 LLM 管线可解释性：Director 负责注意力聚焦、Actor 负责行为生成，原始 JSON 可展开调试。",
+        "主动消息的实时性与成本控制：SSE 推送 + 异步生成 + 懒会话绑定 + 缓存命中自动播报。",
+        "角色一致性：人格演化可追溯 + soul.md 注入 + 世界状态反作用，避免跨会话「精神分裂」。",
+        "多媒体一致性：相册全量外貌 prompt + avatar 参考帧锁定，TTS 音色 1:1 绑定。"
+      ]
+    },
+    "02": {
+      title: "MoneyPrinterTurbo PR · 技术细讲",
+      points: [
+        "付费 API 重试语义建模：按「能否确认服务端未创建任务」划分——ConnectTimeout 可重试 / 读超时不重试 / 429 退避 / 4xx 快速失败。",
+        "计费安全三规则：按需生成、未确认不重试、下载失败重试原 URL；被 review 点出遗漏后，再细分「远端解码失败 vs 本地写入失败」两层语义。",
+        "侵入性控制：唯一重构是把内联图片渲染抽成共用函数；拒绝「接 LLM 改写提示词」的过度设计，只做 23 行可选模板配置。"
+      ]
+    },
+    "03": {
+      title: "agent-skill-framework · 技术细讲",
+      points: [
+        "客观衡量「技能是否有效」：JSON 驱动测试用例 + 真实 LLM 基准对比，把主观判断变成可量化指标。",
+        "迭代闭环：运行评估 → 分析失败 → 优化技能与断言 → 重跑对比 → 交互式 HTML 报告。",
+        "上下文成本：技能按需加载而非全量注入，渐进式管理 Agent 上下文。"
+      ]
+    },
+    "04": {
+      title: "visible-manus · 技术细讲",
+      points: [
+        "多 Agent 任务编排：Planner 拆解带依赖关系的任务图，避免各 Agent 各自为战。",
+        "过程可视化：WebSocket 实时推送 + Zustand 状态管理渲染执行轨迹。",
+        "真实环境集成：浏览器 MCP 接入研究 Agent，实现可验证的网页研究而非模拟。"
+      ]
+    },
+    "05": {
+      title: "VDB-News · 技术细讲",
+      points: [
+        "RAG 管道自动化：抓取 → 清洗 → 向量化 → 问答闭环，向量库自我维护。",
+        "多租户成本控制：免费配额 + token 计费 + 系统每日预算上限 + 用户自定义 Key 分流。",
+        "安全与合规：Key 加密存储、登录防爆破、CSP、日志脱敏。",
+        "流式问答与前端 SSE 对接。"
+      ]
+    },
+    "06": {
+      title: "Attention Gallery · 技术细讲",
+      points: [
+        "照片相似度聚类：本地 ML Kit 特征处理，不上传云端，规避隐私敏感问题。",
+        "相册性能：Room 持久化 + 协程批量加载设备照片流。",
+        "组浏览体验：堆叠卡片交互设计。"
+      ]
+    },
+    "07": {
+      title: "android-wechat-scroller · 技术细讲",
+      points: [
+        "无障碍服务保活：被系统杀死后的重开引导 + 前台服务设计。",
+        "悬浮窗版本兼容：Android 10+ 需 TYPE_APPLICATION_OVERLAY；Android 13+ 广播需显式导出。",
+        "WebView 通过 file:///android_asset/ 加载本地页面。",
+        "长文滚动位置估算与滑块映射。"
+      ]
+    },
+    "10": {
+      title: "html-file-manager · 技术细讲",
+      points: [
+        "无框架实现本地 HTTP 服务：Python 标准库 http.server + 线程处理请求。",
+        "PyInstaller 打包路径兼容：get_resource_path / get_data_dir 区分 exe 与源码运行环境。",
+        "中文内容搜索与标签索引。"
+      ]
+    },
+    "11": {
+      title: "programmer-portfolio-website · 技术细讲",
+      points: [
+        "无框架场景下组织多页面站 + Express 后端 API。",
+        "表单数据落盘与 admin 后台管理页。",
+        "定位说明：体量较小（约 3MB），适合作为补充展示而非主线项目。"
+      ]
+    },
+    "12": {
+      title: "viral-content-analysis · 技术细讲",
+      points: [
+        "提示词根因诊断：90 条分析后 9 个字段仅 1 个有值 → 定位到提示词未描述输出契约 → 修复后 Top1 57→71.3 分（S 级）、聚类 85→16 类、成功率 100%。",
+        "防 LLM 编造事实：时间表述归一化校验（1972年 = 九七二年 = 上世纪九十年代 → 1990），10 个用例零误报零漏报。",
+        "异步任务系统：提交返 202 + 队列 worker + 进度轮询 + 随时停止 + 刷新自动接回，job.json 落盘支持重启恢复。",
+        "云 API 错误分类：并发槽占满（退避重试 21×30s）与每日配额耗尽（立即中止）都返回 429，但处理方式相反。",
+        "数字人链路：模板特效通路 + ffmpeg 归一化拼接 + ASS 字幕烧入，实测 1080×1920 成片。"
+      ]
+    },
+    "13": {
+      title: "TechLog · 技术细讲",
+      points: [
+        "为什么自建：内容要沉淀为可迁移的资产——基于开源模板深度定制（Next.js 15 App Router + Contentlayer 静态生成 + Obsidian 写作流）。",
+        "写作流工程化：Obsidian 笔记 → MDX → Contentlayer → 静态导出，从写作到上线全链路自动化。",
+        "内容与项目互证：博客沉淀的架构决策复盘（Agent 编排 / 容错 / 成本治理）与作品集项目一一对应，不是空谈。"
+      ]
+    },
+    "14": {
+      title: "portwatch · 技术细讲",
+      points: [
+        "性能陷阱：Windows 上 psutil.Process.ppid() 每次调用重建一次全量进程快照（约 45ms），逐进程取父进程让整轮采集从毫秒级恶化到 4476ms、吃穿 2 秒轮询周期 → 改为一次快照 + 查表后降到 73ms（用到 psutil._pswindows 私有 API，保留 process_iter 兜底分支）。",
+        "分层纪律：port_event 只能由采集层的真实观测（added / removed / changed）追加；心跳刷新、对账闭合这类「推断」只允许更新区间表——否则再也分不清「观测到的」和「猜出来的」。",
+        "故障隔离：历史层投递是同步非阻塞 put_nowait、绝不 await 绝不抛异常；sqlite3 全部走 asyncio.to_thread、每条 delta 独立事务、DB 异常只记日志；停机时先停采集再 flush 队列。",
+        "心跳缺陷修复：稳定占用不产生 delta → last_seen_at 永远停在 first_seen_at → 进程被强杀后对账闭合时 ended_at 取到服务重启时刻，占用时长被虚增（停机多久就虚增多久）；修复为每轮采集后无条件刷心跳 + 心跳消息充当「立即 flush」信号，实测长驻 UDP 占用 3.4 小时内 last_seen_at 持续推进、强杀重启后不被改写。",
+        "时间语义诚实：2 秒采样只能把变化定位在 (上一轮采样时刻, 本轮采样时刻] 内，字段名刻意用 first_seen_at / occurred_at 而非 start_time，并在 README 与交接文档里声明「最多一个采样间隔的不确定性、同轮采样内先后顺序不可辨」。",
+        "可处置性保守策略：pid ∈ {0,4} 或归因受限（access != full）一律视为不可处置并打保护标记——宁可少给一个按钮，也不让用户误杀系统服务；svchost / lsass 走的是「归因受限」这条通用路径，不是硬编码白名单。",
+        "测试与 CI：tests/ 分三层钉契约（采集层「自己起的监听端口必须归因到自己」、API 层 WATCH_FIELDS 语义与保守保护、历史层「last_seen_at 必须被心跳推进 / port_event 只由真实观测追加」），GitHub Actions 四矩阵回归；权限受限时采集层用例如实 skip 而不是假装通过。"
+      ]
+    },
+    "15": {
+      title: "flowwatch · 技术细讲",
+      points: [
+        "未归因率的证据驱动收窄（36.8% → 29.8%，最小窗口 1.1%）：先给查表函数插桩拿到未命中原因分布（73.7% 是「表里没有这个端口」、899/5394 条端点 owning PID 为 0），再用 100ms 高频轮询做判别实验，得到硬结论 —— 20.5% 的未归因字节是短命 socket 漏拍、79.5% 是「表里从未出现过」；据此做 promisc=0 + 本机地址白名单（邻居广播帧不再污染指标）、端点短时记忆 6s + 四元组记忆 30s、自适应刷新 0.4/0.8/1.5s。",
+        "两条路先被实测否掉才转向 ETW：表解析从逐行 struct.unpack 换成 array 批量只有 1.6×（58.4ms → 35.8ms，瓶颈在 iphlpapi 的四次表收集），10Hz 要吃单核 36% 不值得；端口级推断只有单侧信息，CDN 与端口复用会混淆归属。ETW 连接事件 ID 查官方清单才发现记忆里的 10/11 是错的（实际 connect 12/28、accept 15/31、disconnect 13/29），字段顺序是 PID size daddr saddr dport sport。",
+        "系统层三条纪律：① 结构体不手算偏移 —— ctypes 按文档字段顺序定义让 ABI 决定 padding，导入时断言关键尺寸（WNODE_HEADER 48 / EVENT_TRACE_PROPERTIES 120 / EVENT_HEADER 80 / EVENT_RECORD 112），EventRecordCallback 偏移 432 与按文档手推一致做交叉验证；② fail-closed —— 每条事件先校验「本机侧地址必须真属于本机」，连续 5 次失败就停用 ETW 并写明原因，绝不误归因；③ 拿不到权限就降级 —— 非提权 state=denied（实测 Win32 error_code=5，而非参数错误的 87/234，反证结构体健康），主链路照常。",
+        "历史层：连续量按时间桶聚合（每分钟每进程一行 + 域名桶 + 事件三关：出现 ≥256 KiB/分钟、尖峰需 ≥3 个基线桶、冷启动只建基线）；攒批 upsert 配「开库预热当前桶」，修掉「同一分钟内重启会用重启后累计覆盖该分钟已落库部分」的边界。",
+        "一次自锁事故换来故障隔离：历史层第一版上线后 /api/health 超时，连不碰数据库的 /api/meta 也超时（事件循环被堵死）；带看门狗的复现把位置钉在 stats()，根因是「统一入口」式全局替换把 _execute 自己的函数体也换成了自我调用 → 递归 + 非重入锁 → 同线程永久自锁；改进为写库走独立线程 + 有界队列（满则丢历史样本）、读接口改同步 def 交 FastAPI 线程池。",
+        "隐私与口径都写进设计：promisc=0、不保存包体、只统计元数据、只监听 127.0.0.1；域名只读明文元数据（DNS 应答的压缩指针解析 + TLS ClientHello 的 SNI，SNI 优先；DoH/DoT/ECH/QUIC 如实显示 IP）；未归因率同时给本窗口与近 60 窗滚动两个口径并附样本窗口数。"
+      ]
+    }
+  };
+
+  cards.forEach(function (card) {
+    var src = card.querySelector(".src-path");
+    var matched = src ? /(\d{2})/.exec(src.getAttribute("title") || "") : null;
+    var data = matched ? BACK[matched[1]] : null;
+    if (!data) return;
+
+    var flip = document.createElement("div");
+    flip.className = "flip";
+
+    // 正面：接管原有全部内容
+    var front = document.createElement("div");
+    front.className = "face front";
+    while (card.firstChild) front.appendChild(card.firstChild);
+
+    var foot = front.querySelector(".card-foot");
+    if (foot) {
+      var hint = document.createElement("span");
+      hint.className = data.demo ? "flip-hint run" : "flip-hint";
+      hint.textContent = data.demo ? "▶ 可演示 · 细讲 ↻" : "细讲 ↻";
+      var link = foot.querySelector(".link-src");
+      if (link) foot.insertBefore(hint, link); else foot.appendChild(hint);
+    }
+
+    // 背面：技术细讲
+    var back = document.createElement("div");
+    back.className = "face back";
+    var heading = document.createElement("h3");
+    heading.textContent = data.title;
+    back.appendChild(heading);
+    var list = document.createElement("ul");
+    list.className = "points";
+    data.points.forEach(function (text) {
+      var li = document.createElement("li");
+      li.textContent = text;
+      list.appendChild(li);
+    });
+    back.appendChild(list);
+
+    if (data.demo) {
+      var box = document.createElement("div");
+      box.className = "demo-box";
+      var boxTitle = document.createElement("div");
+      boxTitle.className = "demo-title";
+      boxTitle.textContent = data.demo.title;
+      box.appendChild(boxTitle);
+      var steps = document.createElement("ol");
+      steps.className = "demo-steps";
+      data.demo.steps.forEach(function (step) {
+        var li = document.createElement("li");
+        li.textContent = step;
+        steps.appendChild(li);
+      });
+      box.appendChild(steps);
+      var note = document.createElement("div");
+      note.className = "demo-note";
+      note.textContent = data.demo.note;
+      box.appendChild(note);
+      back.appendChild(box);
+    }
+
+    var backHint = document.createElement("span");
+    backHint.className = "flip-hint";
+    backHint.textContent = "↩ 点击卡片翻回";
+    back.appendChild(backHint);
+
+    flip.appendChild(front);
+    flip.appendChild(back);
+    card.appendChild(flip);
+
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", "点击卡片查看技术细讲");
+    card.addEventListener("click", function (event) {
+      if (event.target.closest("a, button")) return; // 链接与按钮不触发翻转
+      card.classList.toggle("is-flipped");
+    });
+    card.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        card.classList.toggle("is-flipped");
+      }
+    });
+  });
+
+  chips.forEach(function (chip) {
+    var el = chip.querySelector(".chip-count");
+    if (el) el.textContent = counts[chip.getAttribute("data-filter")] || 0;
+    chip.addEventListener("click", function () {
+      applyFilter(chip.getAttribute("data-filter"));
+    });
+  });
+
+  function applyFilter(filter) {
+    chips.forEach(function (chip) {
+      chip.setAttribute("aria-pressed", String(chip.getAttribute("data-filter") === filter));
+    });
+    var visible = 0;
+    cards.forEach(function (card) {
+      var show = (filter === "all") || (card.getAttribute("data-talk") === filter);
+      card.classList.toggle("hidden", !show);
+      if (show) visible += 1;
+    });
+    empty.style.display = visible === 0 ? "block" : "none";
+  }
+
+})();
+</script>
+</body>
+</html>
