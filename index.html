@@ -674,7 +674,7 @@
       <div class="points-label">核心亮点</div>
       <ul class="points">
         <li>轻量全栈闭环：无框架组织多页面站 + Express 表单 API + admin 后台管理页。</li>
-        <li>自我定位诚实：体量较小（约 3MB），面试主线建议讲 CharacterSeed / VDB-News / viral-content-analysis，本站作补充。</li>
+        <li>边界意识：刻意不做过度工程——展示 → 表单提交 → 落盘 → 后台管理，核心链路控制在最小实现。</li>
       </ul>
       <div class="card-foot">
         <span class="src-path" title="projects\11_programmer-portfolio-website">projects\11_programmer-portfolio-website</span>
@@ -793,7 +793,7 @@
 
   <footer class="footer">
     <span>眠月 · AI Agent 工程 / 全栈开发 · 更新于 2026-09-15</span>
-    <span>所有项目均为真实实践，GitHub 链接可直接查看源码。</span>
+    <span>所有项目均为真实实践；已开源项目可直接查看源码，未开源项目可面试时演示或代码讲解。</span>
   </footer>
 </div>
 
@@ -837,18 +837,10 @@
         "上下文成本：技能按需加载而非全量注入，渐进式管理 Agent 上下文。"
       ]
     },
-    "04": {
-      title: "visible-manus · 技术细讲",
-      points: [
-        "多 Agent 任务编排：Planner 拆解带依赖关系的任务图，避免各 Agent 各自为战。",
-        "过程可视化：WebSocket 实时推送 + Zustand 状态管理渲染执行轨迹。",
-        "真实环境集成：浏览器 MCP 接入研究 Agent，实现可验证的网页研究而非模拟。"
-      ]
-    },
     "05": {
       title: "VDB-News · 技术细讲",
       points: [
-        "RAG 管道自动化：抓取 → 清洗 → 向量化 → 问答闭环，向量库自我维护。",
+        "RAG 链路全自研：文档解析 → 分块（1000 字 + 200 重叠）→ ChromaDB 向量入库 → 主题直连 / 绑定源双路语义召回（检索窗 24h，每主题 ≤10 篇）→ 报告生成。",
         "多租户成本控制：免费配额 + token 计费 + 系统每日预算上限 + 用户自定义 Key 分流。",
         "安全与合规：Key 加密存储、登录防爆破、CSP、日志脱敏。",
         "流式问答与前端 SSE 对接。"
@@ -883,8 +875,7 @@
       title: "programmer-portfolio-website · 技术细讲",
       points: [
         "无框架场景下组织多页面站 + Express 后端 API。",
-        "表单数据落盘与 admin 后台管理页。",
-        "定位说明：体量较小（约 3MB），适合作为补充展示而非主线项目。"
+        "表单数据落盘与 admin 后台管理页。"
       ]
     },
     "12": {
@@ -922,6 +913,7 @@
       points: [
         "未归因率的证据驱动收窄（36.8% → 29.8%，最小窗口 1.1%）：先给查表函数插桩拿到未命中原因分布（73.7% 是「表里没有这个端口」、899/5394 条端点 owning PID 为 0），再用 100ms 高频轮询做判别实验，得到硬结论 —— 20.5% 的未归因字节是短命 socket 漏拍、79.5% 是「表里从未出现过」；据此做 promisc=0 + 本机地址白名单（邻居广播帧不再污染指标）、端点短时记忆 6s + 四元组记忆 30s、自适应刷新 0.4/0.8/1.5s。",
         "两条路先被实测否掉才转向 ETW：表解析从逐行 struct.unpack 换成 array 批量只有 1.6×（58.4ms → 35.8ms，瓶颈在 iphlpapi 的四次表收集），10Hz 要吃单核 36% 不值得；端口级推断只有单侧信息，CDN 与端口复用会混淆归属。ETW 连接事件 ID 查官方清单才发现记忆里的 10/11 是错的（实际 connect 12/28、accept 15/31、disconnect 13/29），字段顺序是 PID size daddr saddr dport sport。",
+        "ETW 的诚实结论：实时消费已打通（根因 = 结构体多 8 字节 + Wnode.Flags 写错，用 pywintrace 逐项对照一次命中），但净收益实测为 0（etw 来源救回 0.0 KiB）→ 定位为取证 / 补充能力，默认关闭（需显式 --etw，管理员）。",
         "系统层三条纪律：① 结构体不手算偏移 —— ctypes 按文档字段顺序定义让 ABI 决定 padding，导入时断言关键尺寸（WNODE_HEADER 48 / EVENT_TRACE_PROPERTIES 120 / EVENT_HEADER 80 / EVENT_RECORD 112），EventRecordCallback 偏移 432 与按文档手推一致做交叉验证；② fail-closed —— 每条事件先校验「本机侧地址必须真属于本机」，连续 5 次失败就停用 ETW 并写明原因，绝不误归因；③ 拿不到权限就降级 —— 非提权 state=denied（实测 Win32 error_code=5，而非参数错误的 87/234，反证结构体健康），主链路照常。",
         "历史层：连续量按时间桶聚合（每分钟每进程一行 + 域名桶 + 事件三关：出现 ≥256 KiB/分钟、尖峰需 ≥3 个基线桶、冷启动只建基线）；攒批 upsert 配「开库预热当前桶」，修掉「同一分钟内重启会用重启后累计覆盖该分钟已落库部分」的边界。",
         "一次自锁事故换来故障隔离：历史层第一版上线后 /api/health 超时，连不碰数据库的 /api/meta 也超时（事件循环被堵死）；带看门狗的复现把位置钉在 stats()，根因是「统一入口」式全局替换把 _execute 自己的函数体也换成了自我调用 → 递归 + 非重入锁 → 同线程永久自锁；改进为写库走独立线程 + 有界队列（满则丢历史样本）、读接口改同步 def 交 FastAPI 线程池。",
