@@ -707,14 +707,6 @@
       </div>
       <h2>android-wechat-scroller</h2>
       <p class="desc">微信文章悬浮滚动条阅读器：用无障碍服务为长文章叠加可拖动的悬浮滚动条，快速定位阅读位置。</p>
-      <div class="tags">
-        <span class="tag">Android Java</span><span class="tag">AccessibilityService</span><span class="tag">悬浮窗</span><span class="tag">WebView</span>
-      </div>
-      <div class="points-label">核心亮点</div>
-      <ul class="points">
-        <li>无障碍服务 + 悬浮窗（Android 10+ TYPE_APPLICATION_OVERLAY / 13+ 广播导出）的系统级兼容处理。</li>
-        <li>带自更新通道：远端 update.json 比对 versionCode → 下载 APK → FileProvider 安装，通知栏进度。</li>
-      </ul>
       <div class="card-foot">
         <span class="src-path" title="projects\07_android-wechat-scroller">projects\07_android-wechat-scroller</span>
       </div>
@@ -942,15 +934,6 @@
         "组浏览体验：堆叠卡片交互设计。"
       ]
     },
-    "07": {
-      title: "android-wechat-scroller · 技术细讲",
-      points: [
-        "无障碍服务保活：被系统杀死后的重开引导 + 前台服务设计。",
-        "悬浮窗版本兼容：Android 10+ 需 TYPE_APPLICATION_OVERLAY；Android 13+ 广播需显式导出。",
-        "WebView 通过 file:///android_asset/ 加载本地页面。",
-        "长文滚动位置估算与滑块映射。"
-      ]
-    },
     "10": {
       title: "html-file-manager · 技术细讲",
       points: [
@@ -1014,7 +997,18 @@
     var src = card.querySelector(".src-path");
     var matched = src ? /(\d{2})/.exec(src.getAttribute("title") || "") : null;
     var data = matched ? BACK[matched[1]] : null;
-    if (!data) return;
+
+    // 无背面数据的卡片（一句话卡）：只包一层正面外观，保持卡片样式、不做翻转
+    if (!data) {
+      var plain = document.createElement("div");
+      plain.className = "flip";
+      var plainFront = document.createElement("div");
+      plainFront.className = "face front";
+      while (card.firstChild) plainFront.appendChild(card.firstChild);
+      plain.appendChild(plainFront);
+      card.appendChild(plain);
+      return;
+    }
 
     var flip = document.createElement("div");
     flip.className = "flip";
