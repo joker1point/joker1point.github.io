@@ -166,6 +166,69 @@
   }
   .stat span { font-size: 13px; color: var(--text-2); }
 
+  /* ============ Narrative（能力主线） ============ */
+  .narrative {
+    margin-top: var(--sp-5);
+    padding: var(--sp-5);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+  }
+  .narrative-lead {
+    margin: 0 0 var(--sp-4);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-1);
+  }
+  .narrative-lead em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-4);
+  }
+  .pillar {
+    padding: var(--sp-4);
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .pillar-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-2);
+  }
+  .pillar-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--accent);
+  }
+  .pillar-head h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  .pillar p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+  .pillar .pillar-evidence {
+    margin-top: var(--sp-2);
+    padding-top: var(--sp-2);
+    border-top: 1px dashed var(--border);
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
   /* ============ Filter chips ============ */
   .chips {
     display: flex;
@@ -460,7 +523,7 @@
   <header class="header">
     <div class="eyebrow">Portfolio · 眠月</div>
     <h1 class="title">项目作品集</h1>
-    <p class="subtitle">AI Agent 工程 · 全栈开发。以下均为真实完成的完整闭环实践：每张卡片为项目概览，点击卡片可翻转查看技术细讲。</p>
+    <p class="subtitle">AI Agent 工程 · 全栈开发。以下均为真实跑通的完整闭环实践；每张卡片为项目概览，点击可翻转查看技术细讲。</p>
     <div class="contact" aria-label="联系方式">
       <a href="mailto:birenwenmou@qq.com">birenwenmou@qq.com</a>
       <a href="https://github.com/joker1point" target="_blank" rel="noopener">GitHub</a>
@@ -471,8 +534,31 @@
       <div class="stat"><b>6</b><span>重点项目</span></div>
       <div class="stat"><b>2</b><span>开源 PR 已合并</span></div>
       <div class="stat"><b>1</b><span>商业赛获奖</span></div>
+      <div class="stat"><b>700+</b><span>Skill 治理规模</span></div>
     </div>
   </header>
+
+  <!-- ============ Narrative（能力主线：读者 10 秒看懂主线，再往下看项目） ============ -->
+  <section class="narrative" aria-label="能力主线">
+    <p class="narrative-lead">「<em>我不把 pipeline 叫 Agent</em>」—— 做 LLM 生产系统的工程闭环，也做 Agent 技能的评测与治理；并能源于 7 个维度说清一个场景为什么不该用 Agent。</p>
+    <div class="pillars">
+      <article class="pillar">
+        <div class="pillar-head"><span class="pillar-num">01</span><h2>生产系统 · Workflow</h2></div>
+        <p>把 LLM 应用做成生产级系统：固定管线 + 计费安全 + 成本治理 + 评测驱动。这些是 workflow，不是 Agent —— 边界不含糊。</p>
+        <p class="pillar-evidence">CharacterSeed 双 LLM 管线（40+ 端点）· VDB-News 16 路信源 8 步管道（≈¥0.0017/篇）· MPT 双 PR（付费 API 重试语义）</p>
+      </article>
+      <article class="pillar">
+        <div class="pillar-head"><span class="pillar-num">02</span><h2>Agent 基础设施 · 评测与治理</h2></div>
+        <p>给 Agent 的技能建评测、治理与沉淀体系：技能有没有用要能被测出来，多而不乱要能被管住，踩过的坑要能变成规则。</p>
+        <p class="pillar-evidence">agent-skill-framework（evals + with/without 基准，2026-09 升级真 tool-use loop）· 700+ Skill 四层治理 · dev-lessons 99 条经验 + 14 条元原则</p>
+      </article>
+      <article class="pillar">
+        <div class="pillar-head"><span class="pillar-num">03</span><h2>边界判断 · 何时不用 Agent</h2></div>
+        <p>用 7 个维度定位一个项目在 workflow→agent 光谱上的位置，论证「为什么这里不需要 Agent」—— 这比硬说「这里有 Agent」更显研究深度。</p>
+        <p class="pillar-evidence">Workflow vs Agent 7 维度框架 · Agent Washing 批判 · RAG vs Agent 选型框架（130 条技术评论提炼）</p>
+      </article>
+    </div>
+  </section>
 
   <!-- ============ Filter ============ -->
   <nav class="chips" role="group" aria-label="项目类型筛选">
@@ -541,19 +627,20 @@
       <div class="card-head">
         <div class="badges">
           <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-accent">2026-09 升级：真 tool-use loop</span>
           <span class="badge badge-neutral">GitHub joker1point</span>
         </div>
         <span class="talk-tag">重点项目</span>
       </div>
       <h2>agent-skill-framework</h2>
-      <p class="desc">AI Agent 技能管理框架：支持技能创建 / 加载 / 评估 / 迭代，以真实 LLM 基准测试验证技能效果，告别"看起来能用"。</p>
+      <p class="desc">AI Agent 技能管理框架：技能创建 / 加载 / 评估 / 迭代。执行器已从「技能文本静态注入 + 单次调用」升级为真 agentic loop —— 技能由模型经 load_skill 工具自主加载。</p>
       <div class="tags">
-        <span class="tag">Python</span><span class="tag">OpenAI 兼容 API</span><span class="tag">JSON 驱动测试</span><span class="tag">HTML 报告</span>
+        <span class="tag">Python</span><span class="tag">function calling</span><span class="tag">OpenAI 兼容 API</span><span class="tag">JSON 驱动测试</span><span class="tag">agent trace</span><span class="tag">HTML 报告</span>
       </div>
       <div class="points-label">核心亮点</div>
       <ul class="points">
         <li>评估闭环：JSON 测试用例 → with/without 真实 LLM 基准对比 → 交互式 HTML 报告 → 自动优化技能描述再迭代。</li>
-        <li>技能按需加载 + 渐进式上下文管理：把"技能是否有用"从主观判断变成可量化、可回归的工程指标。</li>
+        <li>真 agentic loop：瞬时错误指数退避（对齐自研容错方法论）、只读工具重复调用短路（实测省 45% token）、轮数 / token / 墙钟三重上限 + 无工具收尾降级；16 个 mock 用例钉住协议与边界。</li>
       </ul>
       <div class="card-foot">
         <span class="src-path" title="projects\03_agent-skill-framework">projects\03_agent-skill-framework</span>
@@ -792,7 +879,7 @@
   </main>
 
   <footer class="footer">
-    <span>眠月 · AI Agent 工程 / 全栈开发 · 更新于 2026-09-15</span>
+    <span>眠月 · AI Agent 工程 / 全栈开发 · 更新于 2026-09-28</span>
     <span>所有项目均为真实实践；已开源项目可直接查看源码，未开源项目可面试时演示或代码讲解。</span>
   </footer>
 </div>
@@ -832,9 +919,10 @@
     "03": {
       title: "agent-skill-framework · 技术细讲",
       points: [
-        "客观衡量「技能是否有效」：JSON 驱动测试用例 + 真实 LLM 基准对比，把主观判断变成可量化指标。",
-        "迭代闭环：运行评估 → 分析失败 → 优化技能与断言 → 重跑对比 → 交互式 HTML 报告。",
-        "上下文成本：技能按需加载而非全量注入，渐进式管理 Agent 上下文。"
+        "评估方式的重构（2026-09）：原先用「技能文本注入 + 单次调用」评估技能 —— 但技能改变的是决策路径（该不该加载、加载后走哪条路），单次调用测不出来。改为真 tool-use loop：系统提示只给技能清单（渐进式加载 Level 1），模型经 load_skill 工具自主加载。",
+        "三方对比：without_skill / with_skill（静态注入）/ agentic（自主加载）同模型同参数对比；逐条用例记录轨迹（轮数 / 工具调用 / 停止原因 / 重试次数）落 agent_trace.json。",
+        "首次跑批的自我否定：静态注入与无技能通过率相同（+0.0pp）且出现反向差异 —— 说明原评估用例区分度不足、模型常识即可覆盖。框架的第一个真实价值是「测出断言测不出技能」，下一步换含独有知识的任务重测。",
+        "工程细节：瞬时错误指数退避 + 随机抖动（自研容错方法论落地）、只读工具重复调用短路（实测 3 轮 3383 token → 2 轮 1858 token）、轮数 / token / 墙钟三重上限 + 无工具收尾降级；16 个 mock 用例覆盖并行 tool_calls、预算超限、工具异常与协议回执完整性。"
       ]
     },
     "05": {
