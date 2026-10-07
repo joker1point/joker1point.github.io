@@ -844,6 +844,7 @@
       <div class="card-head">
         <div class="badges">
           <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-accent">内置只读 Agent 助手</span>
           <span class="badge badge-neutral">Windows 系统工具 · 全栈</span>
         </div>
         <span class="talk-tag extra">小工具</span>
@@ -855,6 +856,7 @@
       </div>
       <div class="points-label">核心亮点</div>
       <ul class="points">
+        <li><b>内置只读 Agent 助手</b>（1576 行）：12 个工具（8 取数 + 4 记忆原语）+ 6 轮工具循环 + 三层记忆（热状态 / 证据日志 / 长期事实）；隐私<b>物理隔离</b>（聚合档不注入明细工具，对端 IP 进不了上下文）；幻觉护栏三轮（强制纠正轮 → 系统补查 → 未核实标注），出自真实事故，修前 2/8 零工具调用 → 修后 0/8。</li>
         <li>未归因率 <b>36.8% → 29.8%</b>（最小窗口 1.1%）：先给查表函数插桩拿未命中<b>原因分布</b>，再用 100ms 高频轮询做判别实验，把缺口拆成「短命 socket 漏拍 20.5% / 表里从未出现 79.5%」，再针对性修（<code>promisc=0</code> + 本机地址白名单 + 端点/四元组两层记忆 + 自适应刷新）。</li>
         <li>两条路先被实测否掉才转向 ETW：表解析优化只有 <b>1.6×</b>（10Hz 要吃单核 36%）不值得；端口级推断在 CDN 场景会混。ETW 事件 ID 查官方清单才发现记忆里的 <code>10/11</code> 是错的（实际 <code>12/28</code>）。</li>
         <li>系统层三条纪律：结构体不手算偏移（ctypes 按文档顺序定义 + 导入断言尺寸 48/120/80/112）、<b>fail-closed</b>（本机地址校验连续失败就停用，绝不误归因）、拿不到权限就降级（非提权 <code>state=denied</code>，主链路照常）。</li>
@@ -864,6 +866,120 @@
       <div class="card-foot">
         <span class="src-path" title="projects\15_flowwatch">frontend-works\flowwatch</span>
         <a class="link-src" href="https://github.com/joker1point/flowwatch" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+        <!-- 16. ExeTrace -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-accent">后台内存 5–8 MB（实测）</span>
+          <span class="badge badge-neutral">Windows 桌面工具 · 单文件交付</span>
+        </div>
+        <span class="talk-tag focus">重点项目</span>
+      </div>
+      <h2>ExeTrace · 应用历史定位器</h2>
+      <p class="desc">解决「AI 做出的软件，关掉就再也找不到」：后台记录打开过的每一个应用，随时一键找回、一键钉回桌面（与 DeskPin 配对，构成同一条痛点闭环）。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">Tkinter</span><span class="tag">ctypes / Win32</span><span class="tag">注册表 + ToolHelp</span><span class="tag">SQLite</span><span class="tag">PyInstaller</span><span class="tag">Rust / egui</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li><b>双轨历史</b>：注册表冷启动回填（<code>FeatureUsage</code>/<code>MuiCache</code>）+ 运行期实时监控 —— 首次启动就有历史，不用等下一次打开。</li>
+        <li><b>记录判据收紧（穷举验证）</b>：从「任意可见窗口」改为「前台窗口 or explorer 父进程」—— 排除输入法 / 崩溃报告器这类弹窗噪音。</li>
+        <li>后台内存 <b>18–22 MB → 5–8 MB</b>（隐藏时 UI 泵降频 + <code>EmptyWorkingSet</code>；同口径对照 QuickClipboard 13.1 / OneDrive 15.6）；稳态 CPU <b>1.89%</b> 单核（ToolHelp 替换 psutil，依赖整体移除）。</li>
+        <li><b>一次「未响应」事故换来的 UI 纪律</b>：批量 Tk 操作分片时间预算（图标 0.4s/轮、列表 0.35s/轮），扫描期跳过全量重建；复现脚本留在 <code>tools/probe_*.py</code>。</li>
+        <li>Rust 版体积 <b>20.5 → 6.78 MB</b>；内存目标未达成也如实写（对照出 eframe 空壳基线 115.6 MB，不把基线说成应用开销）。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\16_ExeTrace">frontend-works\exetrace</span>
+        <a class="link-src" href="https://github.com/joker1point/ExeTrace" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+    <!-- 17. DeskPin -->
+    <article class="card" data-talk="extra" data-talk-label="补充展示">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-accent">运行时零第三方依赖</span>
+          <span class="badge badge-neutral">单文件 12.1 MB · ctypes COM</span>
+        </div>
+        <span class="talk-tag extra">小工具</span>
+      </div>
+      <h2>DeskPin · 一键钉到桌面</h2>
+      <p class="desc">输入一个 exe（或装着它的文件夹）→ 一键生成桌面快捷方式。ExeTrace 负责找回打开过的应用，DeskPin 把它钉住 —— 同一痛点的后半程。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">ctypes COM</span><span class="tag">IShellLinkW</span><span class="tag">WM_DROPFILES</span><span class="tag">PyInstaller</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li><b>运行时零第三方依赖</b>：纯 <code>ctypes</code> 直调 COM 建/读 .lnk；<code>SHGetKnownFolderPath</code> 解析桌面，<b>兼容 OneDrive 重定向</b>（写死 Desktop 路径最常见的静默失败点）。</li>
+        <li><b>连图标都是自己编的</b>：手写 PNG 编码器（zlib + CRC32）+ PNG-in-ICO 容器 —— 不为一个图标引入 Pillow，交付物压到 12 MB。</li>
+        <li>文件夹<b>智能识别</b>：同名 exe 优先 → 跳过 <code>setup</code>/<code>unins</code>/helper 噪音 → 浅层优先 → 体积大优先；多候选交给用户下拉选择（启发式不装懂）。</li>
+        <li><b>验收三件套全绿</b>：源码自检 → 交付物自检（报告落盘回读）→ e2e（真实桌面创建 .lnk + 独立进程读回 + 自动清理）。CLI 模式退出码 0 = 已校验。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\17_DeskPin">frontend-works\deskpin</span>
+        <span class="link-src">本地交付 · 未开源</span>
+      </div>
+    </article>
+
+    <!-- 18. patrol -->
+    <article class="card" data-talk="focus" data-talk-label="重点讲">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-accent">确定性预筛 + Agent 取证</span>
+          <span class="badge badge-neutral">产品线第三个：端口 → 流量 → 异常守护</span>
+        </div>
+        <span class="talk-tag focus">重点项目</span>
+      </div>
+      <h2>patrol · 本机流量巡检（异常守护）</h2>
+      <p class="desc">流量监控工具回答「发生了什么」，patrol 回答「这件事值不值得你看一眼，以及为什么」—— 先把噪音筛掉（确定性预筛），再让 Agent 对可疑信号做多步取证。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">flowwatch 数据契约（只读）</span><span class="tag">Agent 取证</span><span class="tag">Windows 计划任务</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li><b>两段式架构，职责不越界</b>：预筛层确定性（无模型参与、可回放复算）；取证层才引入 Agent，且只在预筛出信号后触发 —— 全量数据不进模型上下文。</li>
+        <li><b>预筛噪音控制有实测口径</b>：<b>0.9 条/天</b> —— 保证「每天的告警量是人能看完的」。</li>
+        <li><b>一次重大实测驱动的设计</b>：某加速器驱动级代收全机流量，按常规口径看「一切正常」→ 三次对照实验实锤，由此催生<b>连接视角信号</b>（不比字节数、比连接行为），补上「代收后依然异常」的盲区。</li>
+        <li>每个数字都有复现手段（<code>--replay 168</code> 回放一周 / <code>--test-alert</code> 触发真实告警链路）；未做的能力（CI / ETW 关联 / 阈值定标）也写在 README。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\18_patrol">frontend-works\patrol</span>
+        <a class="link-src" href="https://github.com/joker1point/patrol" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </article>
+
+    <!-- 19. gh-fast-download -->
+    <article class="card" data-talk="extra" data-talk-label="补充展示">
+      <div class="card-head">
+        <div class="badges">
+          <span class="badge badge-success">原创 · 已开源</span>
+          <span class="badge badge-accent">实测 1.97× （同字节数对照）</span>
+          <span class="badge badge-neutral">单文件 28 KB · 零依赖</span>
+        </div>
+        <span class="talk-tag extra">小工具</span>
+      </div>
+      <h2>gh-fast-download · GitHub 大文件多线程下载器</h2>
+      <p class="desc">GitHub 大文件单连接常被限速到几十 KB/s —— 28 KB 单文件脚本把文件切 N 块、多线程并发；本机实测 4 MiB：74.8s → 38.0s（<b>1.97x</b>），产物 sha256 完全一致。</p>
+      <div class="tags">
+        <span class="tag">Python</span><span class="tag">urllib + ThreadPool</span><span class="tag">Range 分片</span><span class="tag">断点续传</span><span class="tag">GitHub Actions</span>
+      </div>
+      <div class="points-label">核心亮点</div>
+      <ul class="points">
+        <li><b>实测方法学是核心</b>：<code>--limit-mb</code> 让两种方式传输<b>完全相同的字节数</b>再比（截断内容逐字节一致，回归测试钉住）；「样本 ≥ 4×分片」固化为函数 + 测试 —— 分片只切出 1 片时并发没发生，会得出假 0.9x（踩坑三次）。</li>
+        <li><b>推翻自己</b>：同一素材两次实测 0.90x → 2.06x —— 「两个数据点不足以支撑因果结论」，据此把「CDN 聚合限速」的误判写进了项目文档。</li>
+        <li><b><code>--preflight</code> 预检模式</b>：把「今天这条链路能不能演出效果」从运气变成流程（给出结论与可复制命令）。</li>
+        <li><b>安全审查修掉真实缺陷</b>：调用 API 时曾无条件关 TLS 校验且同时发送 token（凭据泄露风险）→ 现在默认强制校验 + 危险组合主动告警；53 个离线测试 + CI 6 矩阵。</li>
+        <li><b>诚实条款写进产品</b>：不承诺固定倍数 —— 单连接没被限速时它会如实说「此刻帮不上忙」。配套宣传视频 BV1jxpc69Ekk（逐帧渲染 + 同屏赛跑对比 + TTS 旁白，全链路可复跑）。</li>
+      </ul>
+      <div class="card-foot">
+        <span class="src-path" title="projects\19_gh-fast-download">WorkBuddy\...\gh-fast-download</span>
+        <a class="link-src" href="https://github.com/joker1point/gh-fast-download" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </article>
 
@@ -982,6 +1098,10 @@
     "15": {
       title: "flowwatch · 技术细讲",
       points: [
+        "只读 Agent 助手（1576 行）：工具面 12 个（8 个取数 + 4 个记忆原语），schema 由 Pydantic 模型生成、校验失败作为观察回给模型（不抛异常、不打挂整轮）；MAX_TURNS=6 多轮循环，工具异常不中断回合，执行过程作可观测步骤流推给前端。",
+        "记忆对齐 Letta / MemGPT 的 Context Hierarchy：热状态 block（每轮注入）+ 会话证据日志（压缩只标记不删原文）+ 长期事实（findings block）；Prompt 渲染 chars_current / chars_limit 让模型对预算有感知、主动整理；变更原语分三种粒度（replace / insert / rethink），避免「一个写记忆通吃」的意图混淆。",
+        "幻觉护栏三轮机制 —— 出自 2026-09-20 真实事故（模型零工具调用却编出「我查了实时帧 / 排行榜 / 事件流，都没有」，服务端当时无条件采信）：① 首轮零工具且问题要本机数据 → tool_choice=required 强制纠正一轮；② 整轮零工具 → 系统补查（确定性取数后注回上下文重答）；③ 无成功证据 → 打「未核实」标（红线）。实测修前 2/8 零工具调用 → 修后 0/8。",
+        "隐私是物理隔离不是提示词：聚合档不注入明细工具（对端 IP 物理上进不了上下文），执行前另有硬闸拒绝模型的幻觉调用；只读承诺三层验证（AST 静态调用图 / 只读门面 + 双硬闸 / addaudithook 运行时审计）；行为评估集 30 条用例 + 变异测试（注入 5 个缺陷全被抓到才算通过，其中一条抓出「明细工具只是不注入、仍可被幻觉调用」的真洞）。",
         "未归因率的证据驱动收窄（36.8% → 29.8%，最小窗口 1.1%）：先给查表函数插桩拿到未命中原因分布（73.7% 是「表里没有这个端口」、899/5394 条端点 owning PID 为 0），再用 100ms 高频轮询做判别实验，得到硬结论 —— 20.5% 的未归因字节是短命 socket 漏拍、79.5% 是「表里从未出现过」；据此做 promisc=0 + 本机地址白名单（邻居广播帧不再污染指标）、端点短时记忆 6s + 四元组记忆 30s、自适应刷新 0.4/0.8/1.5s。",
         "两条路先被实测否掉才转向 ETW：表解析从逐行 struct.unpack 换成 array 批量只有 1.6×（58.4ms → 35.8ms，瓶颈在 iphlpapi 的四次表收集），10Hz 要吃单核 36% 不值得；端口级推断只有单侧信息，CDN 与端口复用会混淆归属。ETW 连接事件 ID 查官方清单才发现记忆里的 10/11 是错的（实际 connect 12/28、accept 15/31、disconnect 13/29），字段顺序是 PID size daddr saddr dport sport。",
         "ETW 的诚实结论：实时消费已打通（根因 = 结构体多 8 字节 + Wnode.Flags 写错，用 pywintrace 逐项对照一次命中），但净收益实测为 0（etw 来源救回 0.0 KiB）→ 定位为取证 / 补充能力，默认关闭（需显式 --etw，管理员）。",
