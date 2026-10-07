@@ -266,6 +266,7 @@
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    align-items: start;   /* 卡片按自身内容高度，不被同行最高卡拉伸出大片空白 */
     gap: var(--sp-4);
   }
   /* 卡片 = 3D 容器；外观移到 .face 上，正反两面各自可见 */
