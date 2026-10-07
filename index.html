@@ -881,7 +881,7 @@
         <span class="talk-tag focus">重点项目</span>
       </div>
       <h2>ExeTrace · 应用历史定位器</h2>
-      <p class="desc">解决「AI 做出的软件，关掉就再也找不到」：后台记录打开过的每一个应用，随时一键找回、一键钉回桌面（与 DeskPin 配对，构成同一条痛点闭环）。</p>
+      <p class="desc">解决「AI 做出的软件，关掉就再也找不到」：后台记录打开过的每一个应用，随时一键找回；也能对任意 exe / 软件文件夹一键钉到桌面。</p>
       <div class="tags">
         <span class="tag">Python</span><span class="tag">Tkinter</span><span class="tag">ctypes / Win32</span><span class="tag">注册表 + ToolHelp</span><span class="tag">SQLite</span><span class="tag">PyInstaller</span><span class="tag">Rust / egui</span>
       </div>
@@ -891,6 +891,7 @@
         <li><b>记录判据收紧（穷举验证）</b>：从「任意可见窗口」改为「前台窗口 or explorer 父进程」—— 排除输入法 / 崩溃报告器这类弹窗噪音。</li>
         <li>后台内存 <b>18–22 MB → 5–8 MB</b>（隐藏时 UI 泵降频 + <code>EmptyWorkingSet</code>；同口径对照 QuickClipboard 13.1 / OneDrive 15.6）；稳态 CPU <b>1.89%</b> 单核（ToolHelp 替换 psutil，依赖整体移除）。</li>
         <li><b>一次「未响应」事故换来的 UI 纪律</b>：批量 Tk 操作分片时间预算（图标 0.4s/轮、列表 0.35s/轮），扫描期跳过全量重建；复现脚本留在 <code>tools/probe_*.py</code>。</li>
+        <li><b>任意程序一键钉</b>（v3.1 并入原 DeskPin 能力）：选中历史即钉；也能对<b>任意 exe / 软件文件夹</b>钉 —— 文件夹自动识别主程序（同名 exe 优先 → 跳过 <code>setup</code>/<code>unins</code>/helper 噪音 → 浅层优先），多候选下拉切换；纯 <code>ctypes</code> COM（<code>IShellLinkW</code>）零依赖，创建后读回校验、同名自动编号绝不覆盖。</li>
         <li>Rust 版体积 <b>20.5 → 6.78 MB</b>；内存目标未达成也如实写（对照出 eframe 空壳基线 115.6 MB，不把基线说成应用开销）。</li>
       </ul>
       <div class="card-foot">
@@ -900,32 +901,7 @@
     </article>
 
     <!-- 17. DeskPin -->
-    <article class="card" data-talk="extra" data-talk-label="补充展示">
-      <div class="card-head">
-        <div class="badges">
-          <span class="badge badge-success">原创 · 已开源</span>
-          <span class="badge badge-accent">运行时零第三方依赖</span>
-          <span class="badge badge-neutral">单文件 12.1 MB · ctypes COM</span>
-        </div>
-        <span class="talk-tag extra">小工具</span>
-      </div>
-      <h2>DeskPin · 一键钉到桌面</h2>
-      <p class="desc">输入一个 exe（或装着它的文件夹）→ 一键生成桌面快捷方式。ExeTrace 负责找回打开过的应用，DeskPin 把它钉住 —— 同一痛点的后半程。</p>
-      <div class="tags">
-        <span class="tag">Python</span><span class="tag">ctypes COM</span><span class="tag">IShellLinkW</span><span class="tag">WM_DROPFILES</span><span class="tag">PyInstaller</span>
-      </div>
-      <div class="points-label">核心亮点</div>
-      <ul class="points">
-        <li><b>运行时零第三方依赖</b>：纯 <code>ctypes</code> 直调 COM 建/读 .lnk；<code>SHGetKnownFolderPath</code> 解析桌面，<b>兼容 OneDrive 重定向</b>（写死 Desktop 路径最常见的静默失败点）。</li>
-        <li><b>连图标都是自己编的</b>：手写 PNG 编码器（zlib + CRC32）+ PNG-in-ICO 容器 —— 不为一个图标引入 Pillow，交付物压到 12 MB。</li>
-        <li>文件夹<b>智能识别</b>：同名 exe 优先 → 跳过 <code>setup</code>/<code>unins</code>/helper 噪音 → 浅层优先 → 体积大优先；多候选交给用户下拉选择（启发式不装懂）。</li>
-        <li><b>验收三件套全绿</b>：源码自检 → 交付物自检（报告落盘回读）→ e2e（真实桌面创建 .lnk + 独立进程读回 + 自动清理）。CLI 模式退出码 0 = 已校验。</li>
-      </ul>
-      <div class="card-foot">
-        <span class="src-path" title="projects\17_DeskPin">frontend-works\deskpin</span>
-        <span class="link-src">本地交付 · 未开源</span>
-      </div>
-    </article>
+
 
     <!-- 18. patrol -->
     <article class="card" data-talk="focus" data-talk-label="重点讲">
